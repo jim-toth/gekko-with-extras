@@ -33,17 +33,15 @@ config.watch = {
 config.tradingAdvisor = {
   enabled: true,
   method: 'MACD',
-  candleSize: 1,
-  historySize: 3,
-  adapter: 'sqlite'
+  candleSize: 60,
+  historySize: 10,
 }
 
 // Exponential Moving Averages settings:
 config.DEMA = {
   // EMA weight (α)
   // the higher the weight, the more smooth (and delayed) the line
-  short: 10,
-  long: 21,
+  weight: 21,
   // amount of candles to remember and base initial EMAs on
   // the difference between the EMAs (to act as triggers)
   thresholds: {
@@ -216,7 +214,8 @@ config.trader = {
   key: '',
   secret: '',
   username: '', // your username, only required for specific exchanges.
-  passphrase: '' // GDAX, requires a passphrase.
+  passphrase: '', // GDAX, requires a passphrase.
+  orderUpdateDelay: 1, // Number of minutes to adjust unfilled order prices
 }
 
 config.adviceLogger = {
@@ -303,10 +302,8 @@ config.ircbot = {
 
 config.telegrambot = {
   enabled: false,
-  emitUpdates: false,
   token: 'YOUR_TELEGRAM_BOT_TOKEN',
-  botName: 'gekkobot'
-}
+};
 
 config.twitter = {
     // sends pushbullets if true

@@ -7,6 +7,8 @@ const util = require('../core/util');
 const Errors = require('../core/error');
 const log = require('../core/log');
 
+const marketData = require('./bitfinex-markets.json');
+
 var Trader = function(config) {
   _.bindAll(this);
   if(_.isObject(config)) {
@@ -37,7 +39,7 @@ var retryForever = {
 };
 
 // Probably we need to update these string
-var recoverableErrors = new RegExp(/(SOCKETTIMEDOUT|TIMEDOUT|CONNRESET|CONNREFUSED|NOTFOUND|StatusCodeError: 429|StatusCodeError: 5)/)
+var recoverableErrors = new RegExp(/(SOCKETTIMEDOUT|TIMEDOUT|CONNRESET|CONNREFUSED|NOTFOUND|429|443|5\d\d)/g);
 
 Trader.prototype.processError = function(funcName, error) {
   if (!error) return undefined;
@@ -176,10 +178,10 @@ Trader.prototype.cancelOrder = function(order_id, callback) {
   let process = (err, data) => {
     if (err) return callback(err);
 
-    return callback();
+    return callback(undefined);
   }
 
-  let handler = (cb) => this.bitfinex.order_status(order_id, this.handleResponse('cancelOrder', cb));
+  let handler = (cb) => this.bitfinex.cancel_order(order_id, this.handleResponse('cancelOrder', cb));
   util.retryCustom(retryForever, _.bind(handler, this), _.bind(process, this));
 }
 
@@ -211,57 +213,15 @@ Trader.getCapabilities = function () {
   return {
     name: 'Bitfinex',
     slug: 'bitfinex',
-    currencies: ['USD', 'BTC', 'ETH'],
-    assets: ['BTC', 'LTC', 'ETH', 'SAN', 'IOT', 'BCH', 'OMG', 'XMR', 'DSH', 'ZEC', 'EOS', 'ETC', 'XRP', 'NEO', 'ETP'],
-    markets: [
-      
-        //Tradeable Pairs to USD
-        { pair: ['USD', 'BTC'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'BCH'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'IOT'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'OMG'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'EOS'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'DSH'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'SAN'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'ETH'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'LTC'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'ZEC'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'XMR'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'ETC'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'XRP'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'NEO'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['USD', 'ETP'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-      
-        //Tradeable Pairs to BTC
-        { pair: ['BTC', 'ETH'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'BCH'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'IOT'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'OMG'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'DSH'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'ZEC'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'XMR'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'LTC'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'SAN'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'EOS'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'ETC'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'XRP'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'NEO'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['BTC', 'ETP'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-      
-        //Tradeable Pairs to ETH
-        { pair: ['ETH', 'BCH'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['ETH', 'IOT'], minimalOrder: { amount: 6.00, unit: 'asset' } },
-        { pair: ['ETH', 'OMG'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['ETH', 'SAN'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['ETH', 'EOS'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['ETH', 'NEO'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-        { pair: ['ETH', 'ETP'], minimalOrder: { amount: 0.01, unit: 'asset' } },
-      
-    ],
+    currencies: marketData.currencies,
+    assets: marketData.assets,
+    markets: marketData.markets,
     requires: ['key', 'secret'],
     tid: 'tid',
     providesFullHistory: true,
-    tradable: true
+    providesHistory: 'date',
+    tradable: true,
+    forceReorderDelay: true
   };
 }
 
