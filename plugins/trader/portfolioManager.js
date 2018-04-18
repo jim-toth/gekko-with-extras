@@ -157,9 +157,9 @@ Manager.prototype.trade = function(what, retry) {
     if(what === 'BUY') {
 
       amount = this.getBalance(this.currency) / this.ticker.ask; // enforce max currency flip TODO: update this
-      if (this.getBalance(this.currency) > 10) { // TODO: maybe allow market buys?
-        amount = 10 / this.ticker.ask;
-      }
+      // if (this.getBalance(this.currency) > 10) { // TODO: maybe allow market buys?
+      //   amount = 10 / this.ticker.ask;
+      // }
       if(amount > 0){
           price = this.ticker.bid;
           this.buy(amount, price);
