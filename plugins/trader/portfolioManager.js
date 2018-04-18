@@ -152,18 +152,21 @@ Manager.prototype.trade = function(what, retry) {
   this.action = what;
 
   var act = function() {
-    var amount, price;
+    var amount, price, maxCurrency = 10.0;
 
     if(what === 'BUY') {
 
-      amount = this.getBalance(this.currency) / this.ticker.ask;
+      amount = this.getBalance(this.currency) / this.ticker.ask; // enforce max currency flip TODO: update this
+      if (this.getBalance(this.currency) > 10) { // TODO: maybe allow market buys?
+        amount = 10 / this.ticker.ask;
+      }
       if(amount > 0){
           price = this.ticker.bid;
           this.buy(amount, price);
       }
     } else if(what === 'SELL') {
 
-      amount = this.getBalance(this.asset) - this.keepAsset;
+      amount = this.getBalance(this.asset) - this.keepAsset; // don't really care for max asset amount
       if(amount > 0){
           price = this.ticker.ask;
           this.sell(amount, price);
